@@ -2,16 +2,16 @@
 
 RaceDay is a planned web-based event management system for South African road running, walking and cycling events.
 
-This repository currently contains **Part 1 only** of the PROG6212 Portfolio of Evidence. Part 1 focuses on system planning and database design. **No ASP.NET Core API or C# application code is included in Part 1.**
+This repository currently contains **Part 1 only** of the PROG6212 Portfolio of Evidence. Part 1 focuses on system planning and database design. 
 
 ## Part 1 Deliverables
 
 The `/docs` folder contains:
 
-* `RaceDay\_ERD.png` — Entity Relationship Diagram.
-* `API\_ENDPOINT\_PLAN.md` — Complete API endpoint plan for the later Part 2 implementation.
+* `RaceDay\\\_ERD.png` — Entity Relationship Diagram.
+* `API\\\_ENDPOINT\\\_PLAN.md` — Complete API endpoint plan for the later Part 2 implementation.
 * `RaceDayDB.sql` — SQL Server database creation and seed script.
-* `Part1\_Report.md` — Part 1 analysis, rubric mapping, testing plan and references.
+* `Part1\\\_Report.md` — Part 1 analysis, rubric mapping, testing plan and references.
 
 The repository also contains:
 
@@ -77,5 +77,5 @@ Generative AI was used as a planning, proofreading and code-review aid while pre
 
 ## References
 
-The complete IEEE-style reference list is included in `docs/Part1\_Report.md`.
+The complete IEEE-style reference list is included in `docs/Part1\\\_Report.md`.
 
