@@ -1,0 +1,47 @@
+name: Part 1 Repository Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate-part1:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Downloads the repository files to the GitHub Actions runner.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Confirms that the required Part 1 folder exists.
+      - name: Check docs folder
+        run: test -d docs
+
+      # Confirms that the ERD image exists.
+      - name: Check ERD
+        run: test -f docs/RaceDay_ERD.png
+
+      # Confirms that the API endpoint plan exists.
+      - name: Check endpoint plan
+        run: test -f docs/API_ENDPOINT_PLAN.md
+
+      # Confirms that the SQL database script exists.
+      - name: Check SQL script
+        run: test -f docs/RaceDayDB.sql
+
+      # Confirms that the Part 1 report exists.
+      - name: Check Part 1 report
+        run: test -f docs/Part1_Report.md
+
+      # Confirms that the repository has a README.
+      - name: Check README
+        run: test -f README.md
+
+      # Prints a clear success message when all checks pass.
+      - name: Part 1 validation complete
+        run: echo "RaceDay Part 1 repository structure is valid."
