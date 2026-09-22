@@ -8,14 +8,14 @@ This repository currently contains **Part 1 only** of the PROG6212 Portfolio of 
 
 The `/docs` folder contains:
 
-- `RaceDay_ERD.png` — Entity Relationship Diagram.
-- `API_ENDPOINT_PLAN.md` — Complete API endpoint plan for the later Part 2 implementation.
-- `RaceDayDB.sql` — SQL Server database creation and seed script.
-- `Part1_Report.md` — Part 1 analysis, rubric mapping, testing plan and references.
+* `RaceDay\_ERD.png` — Entity Relationship Diagram.
+* `API\_ENDPOINT\_PLAN.md` — Complete API endpoint plan for the later Part 2 implementation.
+* `RaceDayDB.sql` — SQL Server database creation and seed script.
+* `Part1\_Report.md` — Part 1 analysis, rubric mapping, testing plan and references.
 
 The repository also contains:
 
-- `.github/workflows/part1-validation.yml` — GitHub Actions workflow used to validate the required Part 1 repository structure.
+* `.github/workflows/part1-validation.yml` — GitHub Actions workflow used to validate the required Part 1 repository structure.
 
 ## User Roles
 
@@ -23,21 +23,21 @@ The repository also contains:
 
 An Organiser will be able to:
 
-- Create, update and delete events.
-- Create age or distance categories for events.
-- View enrolments for their events.
-- Capture and publish participant results.
+* Create, update and delete events.
+* Create age or distance categories for events.
+* View enrolments for their events.
+* Capture and publish participant results.
 
 ### Participant
 
 A Participant will be able to:
 
-- Register and log in.
-- Browse events and available categories.
-- Enter an event by selecting a category.
-- View their own enrolments.
-- View their own published results.
-- View and update their profile.
+* Register and log in.
+* Browse events and available categories.
+* Enter an event by selecting a category.
+* View their own enrolments.
+* View their own published results.
+* View and update their profile.
 
 ## Database Setup in SQL Server Management Studio
 
@@ -50,14 +50,14 @@ A Participant will be able to:
 
 Expected row counts after a successful run:
 
-| Table | Expected Rows |
-|---|---:|
-| Roles | 2 |
-| Users | 4 |
-| Events | 3 |
-| Categories | 7 |
-| Enrolments | 5 |
-| Results | 2 |
+|Table|Expected Rows|
+|-|-:|
+|Roles|2|
+|Users|4|
+|Events|3|
+|Categories|7|
+|Enrolments|5|
+|Results|2|
 
 ## GitHub Actions / CI-CD
 
@@ -69,24 +69,7 @@ After the workflow passes on GitHub, save a screenshot of the successful green b
 
 Then the screenshot will display below:
 
-![Successful Part 1 CI/CD build](docs/ci-green-build.png)
-
-## Video Presentation
-
-Unlisted YouTube video:
-
-**REPLACE THIS TEXT WITH THE FINAL UNLISTED YOUTUBE VIDEO LINK BEFORE SUBMISSION**
-
-The video should show and explain:
-
-- The repository and `/docs` structure.
-- The ERD design and relationships.
-- The API endpoint planning decisions.
-- The SQL database structure and constraints.
-- The SQL script being run live in SSMS.
-- The successful GitHub Actions green build.
-
-The presentation must use the student's own voice.
+!\[Successful Part 1 CI/CD build](docs/ci-green-build.png)
 
 ## AI Use Disclosure
 
@@ -94,4 +77,5 @@ Generative AI was used as a planning, proofreading and code-review aid while pre
 
 ## References
 
-The complete IEEE-style reference list is included in `docs/Part1_Report.md`.
+The complete IEEE-style reference list is included in `docs/Part1\_Report.md`.
+
