@@ -1,0 +1,43 @@
+name: Part 2 Build and Unit Tests
+
+on:
+  push:
+    branches:
+      - main
+      - part2
+      - "part2/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore NuGet packages
+        run: dotnet restore RaceDay.sln
+
+      - name: Build solution
+        run: dotnet build RaceDay.sln --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test RaceDay.sln --configuration Release --no-build --verbosity normal
+
+      - name: Validate Part 2 repository structure
+        run: |
+          test -d src/RaceDay.Api
+          test -d tests/RaceDay.Api.Tests
+          test -f README.md
+          test -f docs/API_ENDPOINT_PLAN.md
+          test -f docs/RaceDayDB.sql
+          echo "RaceDay Part 2 structure, build, and tests are valid."
