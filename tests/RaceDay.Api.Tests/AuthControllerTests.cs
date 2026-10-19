@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Controllers;
 using RaceDay.Api.DTOs;
 using RaceDay.Api.Models;
+using Xunit;
 
 namespace RaceDay.Api.Tests;
 
