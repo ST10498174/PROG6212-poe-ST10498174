@@ -1,0 +1,19 @@
+@model string
+@* Pictogram for an event type. Bootstrap Icons has walking and cycling icons; the runner is drawn here. *@
+@switch (Model)
+{
+    case "Walk":
+        <i class="bi bi-person-walking" aria-hidden="true"></i>
+        break;
+    case "Cycle":
+        <i class="bi bi-bicycle" aria-hidden="true"></i>
+        break;
+    default:
+        <svg class="rd-icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10.2" cy="2.4" r="1.5" fill="currentColor" stroke="none"/>
+            <path d="M5 6.2 L8 5.2 L10.4 6.6 L12.6 8.2"/>
+            <path d="M8.1 5.3 L6.9 9.4 L9.6 11 L8.8 14.6"/>
+            <path d="M6.9 9.4 L5.2 12.4 L2.4 12.6"/>
+        </svg>
+        break;
+}

@@ -1,0 +1,35 @@
+@model EventListViewModel
+@{
+    var entered = ViewData["EnteredIds"] as HashSet<int> ?? new HashSet<int>();
+}
+@if (Model.LoadError != null)
+{
+    <div class="rd-alert rd-alert-error" role="alert"><i class="bi bi-exclamation-triangle-fill"></i><div>@Model.LoadError</div></div>
+}
+@if (Model.Events.Count == 0 && Model.LoadError == null)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-calendar-x"></i></div>
+        @if (Model.Filter.HasFilters)
+        {
+            <h3>No events match those filters</h3>
+            <p>Try a different type, place or date range, or clear the filters to see every upcoming event.</p>
+            <a class="btn btn-outline-primary" href="@Context.Request.Path">Clear filters</a>
+        }
+        else
+        {
+            <h3>No upcoming events yet</h3>
+            <p>Organisers haven't published any upcoming runs, walks or rides. Check back soon.</p>
+        }
+    </div>
+}
+else if (Model.Events.Count > 0)
+{
+    <p class="text-muted mb-3">@Model.Events.Count upcoming @(Model.Events.Count == 1 ? "event" : "events")@(Model.Filter.HasFilters ? " match your filters" : "")</p>
+    <div class="event-grid">
+        @foreach (var item in Model.Events)
+        {
+            <partial name="_EventCard" model="item" view-data='new ViewDataDictionary(ViewData) { ["Entered"] = entered.Contains(item.EventId) }' />
+        }
+    </div>
+}

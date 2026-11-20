@@ -1,0 +1,38 @@
+@model CategoryFormViewModel
+@* Fields shared by the add and edit category forms. The prefix lets the add form bind to "NewCategory". *@
+@{
+    var prefix = ViewData["Prefix"] as string ?? string.Empty;
+    string Name(string field) => string.IsNullOrEmpty(prefix) ? field : $"{prefix}.{field}";
+    string Id(string field) => Name(field).Replace('.', '_');
+    string? Err(string field) => ViewContext.ViewData.ModelState[Name(field)]?.Errors.FirstOrDefault()?.ErrorMessage;
+}
+<div class="row g-3">
+    <div class="col-sm-7">
+        <label class="form-label" for="@Id("Name")">Category name</label>
+        <input class="form-control @(Err("Name") != null ? "input-validation-error" : "")" id="@Id("Name")" name="@Name("Name")" value="@Model.Name" maxlength="100" required placeholder="e.g. Senior 20-39 or 21.1km" />
+        <span class="text-danger">@Err("Name")</span>
+    </div>
+    <div class="col-sm-5">
+        <label class="form-label" for="@Id("CategoryType")">Type</label>
+        <select class="form-select" id="@Id("CategoryType")" name="@Name("CategoryType")" data-category-type>
+            <option value="Distance" selected="@(Model.CategoryType == "Distance")">Distance</option>
+            <option value="Age" selected="@(Model.CategoryType == "Age")">Age group</option>
+        </select>
+    </div>
+    <div class="col-sm-6" data-for="Age">
+        <label class="form-label" for="@Id("MinAge")">Youngest age</label>
+        <input class="form-control @(Err("MinAge") != null ? "input-validation-error" : "")" type="number" min="0" max="120" id="@Id("MinAge")" name="@Name("MinAge")" value="@Model.MinAge" />
+        <span class="text-danger">@Err("MinAge")</span>
+    </div>
+    <div class="col-sm-6" data-for="Age">
+        <label class="form-label" for="@Id("MaxAge")">Oldest age</label>
+        <input class="form-control @(Err("MaxAge") != null ? "input-validation-error" : "")" type="number" min="0" max="120" id="@Id("MaxAge")" name="@Name("MaxAge")" value="@Model.MaxAge" />
+        <span class="text-danger">@Err("MaxAge")</span>
+        <div class="form-text">Use 120 for "and over", e.g. Veterans 40+.</div>
+    </div>
+    <div class="col-sm-6" data-for="Distance">
+        <label class="form-label" for="@Id("DistanceKm")">Distance (km)</label>
+        <input class="form-control @(Err("DistanceKm") != null ? "input-validation-error" : "")" type="number" step="0.1" min="0.1" id="@Id("DistanceKm")" name="@Name("DistanceKm")" value="@Model.DistanceKm?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
+        <span class="text-danger">@Err("DistanceKm")</span>
+    </div>
+</div>

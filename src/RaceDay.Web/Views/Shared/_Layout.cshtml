@@ -1,0 +1,158 @@
+@{
+    // The navigation is chosen from the role stored in the session:
+    //   Organiser   -> dark "race control" sidebar shell
+    //   Participant -> light top navigation
+    //   Visitor     -> top navigation with log in / register
+    var user = Context.GetCurrentUser();
+    var area = ViewContext.RouteData.Values["area"] as string ?? string.Empty;
+    var controller = ViewContext.RouteData.Values["controller"] as string ?? string.Empty;
+    var title = ViewData["Title"] as string;
+    var fullBleed = ViewData["FullBleed"] as bool? == true;
+
+    string Active(string a, string c) =>
+        string.Equals(area, a, StringComparison.OrdinalIgnoreCase) && string.Equals(controller, c, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    string AreaActive(string a, params string[] controllers) =>
+        string.Equals(area, a, StringComparison.OrdinalIgnoreCase) && controllers.Contains(controller, StringComparer.OrdinalIgnoreCase) ? "active" : string.Empty;
+}
+<!DOCTYPE html>
+<html lang="en-ZA">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RaceDay: enter and organise South African road runs, walks and cycle events." />
+    <title>@(string.IsNullOrEmpty(title) ? "RaceDay" : $"{title} · RaceDay")</title>
+    <link rel="icon" href="~/images/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<a class="visually-hidden-focusable position-absolute p-2 bg-white" href="#main">Skip to content</a>
+
+@if (user is { IsOrganiser: true })
+{
+    <div class="rc-shell">
+        <aside class="rc-sidebar" id="rcSidebar" aria-label="Organiser navigation">
+            <div class="rc-sidebar-head">
+                <a class="rd-brand" asp-area="Organiser" asp-controller="Dashboard" asp-action="Index">
+                    <partial name="_BrandMark" />
+                    <span class="rd-brand-word">RaceDay</span>
+                </a>
+                <div class="rc-sidebar-sub">Race control for organisers</div>
+            </div>
+            <nav class="rc-nav">
+                <a class="@Active("Organiser", "Dashboard")" asp-area="Organiser" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-speedometer2"></i>Dashboard</a>
+                <a class="@AreaActive("Organiser", "Events", "Categories", "Enrolments", "Results")" asp-area="Organiser" asp-controller="Events" asp-action="Index"><i class="bi bi-flag"></i>My events</a>
+                <a asp-area="Organiser" asp-controller="Events" asp-action="Create"><i class="bi bi-plus-circle"></i>Create event</a>
+                <div class="rc-nav-label">Platform</div>
+                <a class="@Active("", "Events")" asp-area="" asp-controller="Events" asp-action="Index"><i class="bi bi-calendar-event"></i>Public event list</a>
+                <a class="@Active("", "Profile")" asp-area="" asp-controller="Profile" asp-action="Index"><i class="bi bi-person-circle"></i>Profile</a>
+            </nav>
+            <div class="rc-sidebar-foot">
+                @if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                {
+                    <img class="avatar" src="@user.ProfilePictureUrl" alt="" />
+                }
+                else
+                {
+                    <span class="avatar" aria-hidden="true">@user.Initials</span>
+                }
+                <div>
+                    <div class="name">@user.FullName</div>
+                    <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                        <button type="submit" class="btn btn-link text-decoration-none"><i class="bi bi-box-arrow-right me-1"></i>Log out</button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+        <div class="rc-backdrop" id="rcBackdrop"></div>
+        <div class="rc-main">
+            <div class="rc-mobilebar">
+                <a class="rd-brand" asp-area="Organiser" asp-controller="Dashboard" asp-action="Index">
+                    <partial name="_BrandMark" /><span class="rd-brand-word">RaceDay</span>
+                </a>
+                <button class="btn btn-outline-light-subtle btn-sm" type="button" id="rcToggle" aria-controls="rcSidebar" aria-expanded="false">
+                    <i class="bi bi-list"></i> Menu
+                </button>
+            </div>
+            <main id="main" class="rc-content">
+                <partial name="_Alerts" />
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    <header class="rd-topbar">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="rd-brand" href="@(user?.DashboardUrl() ?? Url.Action("Index", "Home", new { area = "" }))">
+                    <partial name="_BrandMark" />
+                    <span class="rd-brand-word">RaceDay</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    @if (user is { IsParticipant: true })
+                    {
+                        <ul class="navbar-nav ms-lg-4 me-auto gap-lg-1">
+                            <li class="nav-item"><a class="nav-link @Active("Participant", "Dashboard")" asp-area="Participant" asp-controller="Dashboard" asp-action="Index">Find events</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Participant", "Enrolments")" asp-area="Participant" asp-controller="Enrolments" asp-action="Index">My events</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Participant", "Results")" asp-area="Participant" asp-controller="Results" asp-action="Index">My results</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("", "Profile")" asp-area="" asp-controller="Profile" asp-action="Index">Profile</a></li>
+                        </ul>
+                        <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+                            @if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+                            {
+                                <img class="avatar" src="@user.ProfilePictureUrl" alt="" />
+                            }
+                            else
+                            {
+                                <span class="avatar" aria-hidden="true">@user.Initials</span>
+                            }
+                            <span class="fw-semibold me-1">@user.FirstName</span>
+                            <span class="role-chip">Participant</span>
+                            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="m-0 ms-2">
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Log out</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <ul class="navbar-nav ms-lg-4 me-auto">
+                            <li class="nav-item"><a class="nav-link @Active("", "Events")" asp-area="" asp-controller="Events" asp-action="Index">Events</a></li>
+                            <li class="nav-item"><a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register" asp-route-role="Organiser">For organisers</a></li>
+                        </ul>
+                        <div class="d-flex gap-2 mt-3 mt-lg-0">
+                            <a class="btn btn-outline-primary" asp-area="" asp-controller="Account" asp-action="Login">Log in</a>
+                            <a class="btn btn-primary" asp-area="" asp-controller="Account" asp-action="Register">Create account</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main id="main" class="@(fullBleed ? "" : "container py-4 py-lg-5")">
+        @if (!fullBleed)
+        {
+            <partial name="_Alerts" />
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="rd-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>RaceDay · Road running, walking and cycling events across South Africa</span>
+            <span>PROG6212 Portfolio of Evidence</span>
+        </div>
+    </footer>
+}
+
+<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

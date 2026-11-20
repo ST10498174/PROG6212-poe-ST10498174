@@ -1,0 +1,78 @@
+@model MyResultsViewModel
+@{
+    ViewData["Title"] = "My results";
+    var best = Model.BestFinish;
+}
+<div class="page-head">
+    <h1>My results</h1>
+    <p class="lead mb-0">Your race history across every completed event you entered.</p>
+    <div class="lane-line"></div>
+</div>
+
+@if (Model.Results.Count == 0 && Model.AwaitingResults.Count == 0)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-stopwatch"></i></div>
+        <h3>No results yet</h3>
+        <p>After you take part in an event, the organiser publishes finish times and positions. They'll appear here.</p>
+        <a class="btn btn-primary" asp-controller="Dashboard" asp-action="Index">Find an event</a>
+    </div>
+}
+else
+{
+    @if (Model.Results.Count > 0)
+    {
+        <div class="stat-strip mb-4">
+            <div class="stat"><div class="value">@Model.RacesFinished</div><div class="label">Events finished</div></div>
+            <div class="stat"><div class="value">@Model.TotalDistance.ToString("0.#")<span class="fs-5"> km</span></div><div class="label">Distance covered</div></div>
+            @if (best != null)
+            {
+                <div class="stat"><div class="value">@DisplayHelpers.Ordinal(best.FinishingPosition)</div><div class="label">Best finish · @best.EventName</div></div>
+            }
+        </div>
+
+        <div class="panel mb-4">
+            <div class="panel-head"><h2>Race history</h2></div>
+            @foreach (var r in Model.Results)
+            {
+                <div class="result-row">
+                    <div class="position-bib" aria-label="@DisplayHelpers.Ordinal(r.FinishingPosition) out of @r.TotalFinishers finishers">
+                        <div class="pos">@DisplayHelpers.Ordinal(r.FinishingPosition)</div>
+                        <div class="of">of @r.TotalFinishers @(r.TotalFinishers == 1 ? "finisher" : "finishers")</div>
+                    </div>
+                    <div>
+                        <div class="fw-semibold fs-5">@r.EventName</div>
+                        <div class="text-muted small">
+                            <partial name="_EventTypeIcon" model="r.EventType" /> @r.Date.ToString("d MMMM yyyy") · @r.Location · @r.Category
+                        </div>
+                    </div>
+                    <div class="time-cell">
+                        <div class="time">@DisplayHelpers.FinishTime(r.FinishTime)</div>
+                        <div class="pace">@DisplayHelpers.Pace(r.FinishTime, r.DistanceKm, r.EventType) over @DisplayHelpers.Distance(r.DistanceKm)</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.AwaitingResults.Count > 0)
+    {
+        <h2 class="h3 mb-3">Awaiting results</h2>
+        <div class="panel">
+            <table class="rd-table">
+                <thead><tr><th>Event</th><th>Date</th><th>Category</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var e in Model.AwaitingResults)
+                {
+                    <tr>
+                        <td class="strong">@e.EventName</td>
+                        <td>@e.EventDate.ToString("d MMM yyyy")</td>
+                        <td>@e.CategoryName</td>
+                        <td><span class="status status-draft">Organiser hasn't published yet</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+}

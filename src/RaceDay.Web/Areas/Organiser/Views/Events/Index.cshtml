@@ -1,0 +1,91 @@
+@model OrganiserDashboardViewModel
+@{
+    ViewData["Title"] = "My events";
+}
+<div class="page-head page-head-row">
+    <div>
+        <h1>My events</h1>
+        <p class="lead mb-0">Everything you've published, with entries and results at a glance.</p>
+    </div>
+    <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg me-1"></i>Create event</a>
+</div>
+
+@if (Model.Events.Count == 0)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-calendar-plus"></i></div>
+        <h3>No events yet</h3>
+        <p>Create your first event to start taking entries.</p>
+        <a class="btn btn-primary" asp-action="Create">Create an event</a>
+    </div>
+}
+else
+{
+    foreach (var group in new[] { (Title: "Upcoming", Items: Model.Upcoming.ToList()), (Title: "Completed", Items: Model.Past.ToList()) })
+    {
+        if (group.Items.Count == 0) continue;
+        <h2 class="h3 mt-2 mb-3">@group.Title <span class="text-muted fs-6 fw-normal">(@group.Items.Count)</span></h2>
+        <div class="panel mb-4">
+            <div class="table-wrap">
+                <table class="rd-table">
+                    <thead>
+                    <tr><th></th><th>Event</th><th>Date</th><th>Categories</th><th>Entries</th><th>Results</th><th class="text-end">Manage</th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var e in group.Items)
+                    {
+                        <tr>
+                            <td style="width:92px"><img src="@DisplayHelpers.BannerUrl(e.BannerImageUrl, e.EventType)" alt="" style="width:76px;height:40px;object-fit:cover;border-radius:6px" /></td>
+                            <td>
+                                <a class="strong text-decoration-none text-reset" asp-action="Edit" asp-route-id="@e.EventId">@e.Name</a>
+                                <div class="text-muted small"><partial name="_EventTypeIcon" model="e.EventType" /> @e.EventType · @e.Location · @DisplayHelpers.Distance(e.DistanceKm)</div>
+                            </td>
+                            <td class="text-nowrap">@e.Date.ToString("d MMM yyyy")<div class="text-muted small">@DisplayHelpers.Relative(e.Date)</div></td>
+                            <td>
+                                @if (e.CategoryCount == 0)
+                                {
+                                    <a class="status status-pending text-decoration-none" asp-controller="Categories" asp-action="Index" asp-route-eventId="@e.EventId">Add categories</a>
+                                }
+                                else
+                                {
+                                    <span class="num fs-5">@e.CategoryCount</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="num fs-5">@e.EnrolmentCount</span>
+                                @if (e.PendingCount > 0)
+                                {
+                                    <span class="status status-pending ms-1">@e.PendingCount pending</span>
+                                }
+                            </td>
+                            <td>
+                                @if (e.IsUpcoming)
+                                {
+                                    <span class="text-muted small">After race day</span>
+                                }
+                                else if (e.EnrolmentCount == 0)
+                                {
+                                    <span class="text-muted small">No entrants</span>
+                                }
+                                else
+                                {
+                                    <span class="@(e.PublishedResultCount >= e.EnrolmentCount ? "status status-published" : "status status-pending")">@e.PublishedResultCount / @e.EnrolmentCount published</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Manage @e.Name">
+                                    <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@e.EventId">Edit</a>
+                                    <a class="btn btn-outline-primary" asp-controller="Categories" asp-action="Index" asp-route-eventId="@e.EventId">Categories</a>
+                                    <a class="btn btn-outline-primary" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@e.EventId">Entries</a>
+                                    <a class="btn btn-outline-primary" asp-controller="Results" asp-action="Index" asp-route-eventId="@e.EventId">Results</a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@e.EventId" title="Delete @e.Name"><i class="bi bi-trash"></i><span class="visually-hidden">Delete</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,118 @@
+@model EventDetailsViewModel
+@{
+    var e = Model.Event;
+    ViewData["Title"] = e.Name;
+    var backUrl = Model.IsParticipant ? "/Participant/Dashboard" : Model.IsOrganiser ? "/Organiser/Events" : Url.Action("Index", "Events");
+}
+<div class="breadcrumb-lite"><a href="@backUrl"><i class="bi bi-arrow-left me-1"></i>@(Model.IsOrganiser ? "My events" : "All events")</a></div>
+
+<div class="event-hero">
+    <img src="@DisplayHelpers.BannerUrl(e.BannerImageUrl, e.EventType)" alt="Banner for @e.Name" />
+    <div class="caption">
+        <span class="type-tag"><partial name="_EventTypeIcon" model="e.EventType" />@e.EventType</span>
+        @if (!e.IsUpcoming)
+        {
+            <span class="status status-closed ms-1">Event completed</span>
+        }
+        <h1>@e.Name</h1>
+    </div>
+</div>
+
+<div class="fact-row">
+    <div class="fact"><div class="k">Date</div><div class="v">@e.Date.ToString("ddd d MMM yyyy")</div></div>
+    <div class="fact"><div class="k">Location</div><div class="v">@e.Location</div></div>
+    <div class="fact"><div class="k">Distance</div><div class="v">@DisplayHelpers.Distance(e.DistanceKm)</div></div>
+    <div class="fact"><div class="k">Organised by</div><div class="v">@(e.OrganiserName ?? "RaceDay organiser")</div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h2 class="h3">About this event</h2>
+        <p style="white-space: pre-line; max-width: 70ch">@e.Description</p>
+
+        <h2 class="h3 mt-4">Categories</h2>
+        @if (Model.Categories.Count == 0)
+        {
+            <p class="text-muted">The organiser hasn't added categories yet. Entries open once they do.</p>
+        }
+        else
+        {
+            <div class="panel">
+                <table class="rd-table">
+                    <thead><tr><th>Category</th><th>Type</th><th>Applies to</th></tr></thead>
+                    <tbody>
+                    @foreach (var c in Model.Categories)
+                    {
+                        <tr><td class="strong">@c.Name</td><td>@c.CategoryType</td><td>@c.Summary</td></tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel panel-pad enter-panel">
+            @if (Model.IsOwner)
+            {
+                <h2 class="h3">This is your event</h2>
+                <p class="text-muted">Manage the details, categories, entries and results from race control.</p>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-primary" asp-area="Organiser" asp-controller="Events" asp-action="Edit" asp-route-id="@e.EventId"><i class="bi bi-pencil me-1"></i>Edit event</a>
+                    <a class="btn btn-outline-primary" asp-area="Organiser" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@e.EventId">View entries</a>
+                </div>
+            }
+            else if (Model.IsOrganiser)
+            {
+                <h2 class="h3">Viewing as an organiser</h2>
+                <p class="text-muted mb-0">Only participant accounts can enter events, and only this event's organiser can manage it.</p>
+            }
+            else if (Model.MyEnrolment != null)
+            {
+                <h2 class="h3">You're entered</h2>
+                <p class="mb-2">Category: <strong>@Model.MyEnrolment.CategoryName</strong></p>
+                <p class="mb-3">Status: <span class="@DisplayHelpers.StatusClass(Model.MyEnrolment.Status)">@Model.MyEnrolment.Status</span></p>
+                <p class="text-muted small">@(Model.MyEnrolment.Status == "Pending" ? "The organiser will confirm your entry before race day." : "See you on the start line.")</p>
+                <a class="btn btn-outline-primary w-100" asp-area="Participant" asp-controller="Enrolments" asp-action="Index">Go to my events</a>
+            }
+            else if (!e.IsUpcoming)
+            {
+                <h2 class="h3">Entries closed</h2>
+                <p class="text-muted mb-0">This event has already taken place.</p>
+            }
+            else if (Model.Categories.Count == 0)
+            {
+                <h2 class="h3">Entries open soon</h2>
+                <p class="text-muted mb-0">You'll be able to enter once the organiser adds categories.</p>
+            }
+            else if (Model.IsParticipant)
+            {
+                <h2 class="h3">Enter this event</h2>
+                <p class="text-muted">Choose the category you'll take part in. Your entry is recorded straight away.</p>
+                <form asp-area="Participant" asp-controller="Enrolments" asp-action="Create" method="post">
+                    <input type="hidden" name="eventId" value="@e.EventId" />
+                    <fieldset>
+                        <legend class="visually-hidden">Category</legend>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <label class="category-option">
+                                <input type="radio" name="selectedCategoryId" value="@c.CategoryId" required checked="@(Model.Categories.Count == 1)" />
+                                <span><span class="fw-semibold d-block">@c.Name</span><span class="sub">@c.Summary</span></span>
+                            </label>
+                        }
+                    </fieldset>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-2" data-busy="Entering…">Enter event</button>
+                </form>
+            }
+            else
+            {
+                <h2 class="h3">Want to take part?</h2>
+                <p class="text-muted">Log in or create a free participant account to enter.</p>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Log in to enter</a>
+                    <a class="btn btn-outline-primary" asp-controller="Account" asp-action="Register">Create an account</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

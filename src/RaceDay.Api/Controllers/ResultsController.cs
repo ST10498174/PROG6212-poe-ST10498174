@@ -45,7 +45,7 @@ public class ResultsController : ApiControllerBase
 
         _db.Results.Add(result);
         await _db.SaveChangesAsync();
-        return Created($"/api/results/{result.ResultId}", result);
+        return Created($"/api/results/{result.ResultId}", ToResponse(result));
     }
 
     /// <summary>Updates a result captured for an event owned by the logged-in Organiser.</summary>
@@ -69,7 +69,7 @@ public class ResultsController : ApiControllerBase
         result.IsPublished = request.IsPublished;
 
         await _db.SaveChangesAsync();
-        return Ok(result);
+        return Ok(ToResponse(result));
     }
 
     /// <summary>Returns the logged-in Participant's own published results.</summary>
@@ -91,7 +91,13 @@ public class ResultsController : ApiControllerBase
                 Date = r.Enrolment.Event.EventDate,
                 Category = r.Enrolment.Category!.Name,
                 r.FinishTime,
-                r.FinishingPosition
+                r.FinishingPosition,
+                // Part 3: context for the "My Results" page, e.g. "47th out of 312 finishers".
+                r.Enrolment.EventId,
+                r.Enrolment.Event.Location,
+                r.Enrolment.Event.EventType,
+                r.Enrolment.Event.DistanceKm,
+                TotalFinishers = _db.Results.Count(other => other.IsPublished && other.Enrolment!.EventId == r.Enrolment.EventId)
             })
             .ToListAsync();
 
@@ -131,6 +137,17 @@ public class ResultsController : ApiControllerBase
 
         return Ok(results);
     }
+
+    // Flat response object: the loaded Result -> Enrolment -> Result graph would otherwise be a JSON object cycle.
+    private static object ToResponse(Result r) => new
+    {
+        r.ResultId,
+        r.EnrolmentId,
+        r.FinishTime,
+        r.FinishingPosition,
+        r.IsPublished,
+        r.RecordedAt
+    };
 
     private static bool TryParseFinishTime(string value, out TimeSpan finishTime)
     {

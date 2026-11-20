@@ -1,0 +1,29 @@
+@model EventDto
+@{
+    // Optional: set ViewData["Entered"] = true to label events the Participant has already entered.
+    var entered = ViewData["Entered"] as bool? == true;
+}
+<article class="event-card">
+    <div class="banner">
+        <img src="@DisplayHelpers.BannerUrl(Model.BannerImageUrl, Model.EventType)" alt="" loading="lazy" />
+        <span class="type-tag"><partial name="_EventTypeIcon" model="Model.EventType" />@Model.EventType</span>
+        @if (entered)
+        {
+            <span class="entered status status-confirmed bg-white">Entered</span>
+        }
+    </div>
+    <div class="body">
+        <div class="bib-date" aria-hidden="true">
+            <span class="day">@Model.Date.Day</span>
+            <span class="month">@Model.Date.ToString("MMM")</span>
+        </div>
+        <div class="min-w-0">
+            <h3><a asp-area="" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">@Model.Name</a></h3>
+            <div class="meta">
+                <span><i class="bi bi-calendar3"></i>@Model.Date.ToString("ddd d MMMM yyyy") · @DisplayHelpers.Relative(Model.Date)</span>
+                <span><i class="bi bi-geo-alt"></i>@Model.Location</span>
+                <span><i class="bi bi-signpost-split"></i>@DisplayHelpers.Distance(Model.DistanceKm)@(Model.CategoryCount > 0 ? $" · {Model.CategoryCount} {(Model.CategoryCount == 1 ? "category" : "categories")}" : "")</span>
+            </div>
+        </div>
+    </div>
+</article>

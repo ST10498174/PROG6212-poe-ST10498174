@@ -1,0 +1,82 @@
+@model ResultsPageViewModel
+@{
+    ViewData["Title"] = $"Results · {Model.Event.Name}";
+    var drafts = Model.CapturedCount - Model.PublishedCount;
+}
+<partial name="_ManageHeader" model="Model" />
+
+@if (!Model.CanCapture)
+{
+    <div class="rd-alert rd-alert-info"><i class="bi bi-hourglass-split"></i>
+        <div>Results open after race day. You can capture finish times from <strong>@Model.Event.Date.ToString("dddd d MMMM yyyy")</strong>.</div>
+    </div>
+}
+
+@if (Model.Rows.Count == 0)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-stopwatch"></i></div>
+        <h3>No entrants to time</h3>
+        <p>Results are captured per entry. Once participants have entered and taken part, you can record their times here.</p>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div class="text-muted">
+            <span class="num fs-5 text-body">@Model.CapturedCount</span> of @Model.Rows.Count captured ·
+            <span class="num fs-5 text-body">@Model.PublishedCount</span> published
+        </div>
+        @if (drafts > 0)
+        {
+            <form asp-action="PublishAll" asp-route-eventId="@Model.Event.EventId" method="post" data-confirm="Publish @drafts draft results? Participants will see them straight away.">
+                <button type="submit" class="btn btn-primary btn-sm" data-busy="Publishing…"><i class="bi bi-megaphone me-1"></i>Publish @drafts @(drafts == 1 ? "draft" : "drafts")</button>
+            </form>
+        }
+    </div>
+
+    <div class="panel">
+        <div class="capture-row capture-head" aria-hidden="true">
+            <div>Participant</div><div>Category</div><div>Finish time</div><div>Position</div><div>Published</div><div></div>
+        </div>
+        @foreach (var row in Model.Rows)
+        {
+            var timeId = $"time-{row.EnrolmentId}";
+            var posId = $"pos-{row.EnrolmentId}";
+            var pubId = $"pub-{row.EnrolmentId}";
+            <form asp-action="Save" asp-route-eventId="@Model.Event.EventId" method="post" class="capture-row">
+                <input type="hidden" name="EnrolmentId" value="@row.EnrolmentId" />
+                <input type="hidden" name="ResultId" value="@row.ResultId" />
+                <input type="hidden" name="ParticipantName" value="@row.ParticipantName" />
+                <div class="who">
+                    <div class="strong">@row.ParticipantName</div>
+                    <div>
+                        <span class="@DisplayHelpers.StatusClass(row.EnrolmentStatus)">@row.EnrolmentStatus</span>
+                        @if (row.ResultId.HasValue)
+                        {
+                            <span class="@(row.IsPublished ? "status status-published" : "status status-draft")">@(row.IsPublished ? "Published" : "Draft")</span>
+                        }
+                    </div>
+                </div>
+                <div class="text-muted">@row.Category</div>
+                <div>
+                    <label class="visually-hidden" for="@timeId">Finish time for @row.ParticipantName</label>
+                    <input class="form-control" id="@timeId" name="FinishTime" value="@row.FinishTime" placeholder="hh:mm:ss" inputmode="numeric"
+                           pattern="\d{1,2}:[0-5]\d:[0-5]\d" title="Use hh:mm:ss, e.g. 01:24:35" disabled="@(!Model.CanCapture)" required />
+                </div>
+                <div>
+                    <label class="visually-hidden" for="@posId">Position for @row.ParticipantName</label>
+                    <input class="form-control" id="@posId" name="FinishingPosition" type="number" min="1" value="@row.FinishingPosition" placeholder="#" disabled="@(!Model.CanCapture)" required />
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="@pubId" name="IsPublished" value="true" checked="@row.IsPublished" disabled="@(!Model.CanCapture)" />
+                    <label class="form-check-label small" for="@pubId">Publish</label>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-sm @(row.ResultId.HasValue ? "btn-outline-primary" : "btn-primary")" disabled="@(!Model.CanCapture)" data-busy="Saving…">@(row.ResultId.HasValue ? "Update" : "Save")</button>
+                </div>
+            </form>
+        }
+    </div>
+    <p class="text-muted small mt-2">Draft results are only visible to you. Participants see a result on their "My results" page once it's published.</p>
+}

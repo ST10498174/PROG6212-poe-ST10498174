@@ -1,0 +1,52 @@
+@model ParticipantDashboardViewModel
+@{
+    ViewData["Title"] = "Find events";
+    ViewData["FilterAction"] = Url.Action("Index", "Dashboard", new { area = "Participant" });
+    ViewData["EnteredIds"] = Model.EnteredEventIds;
+    var next = Model.NextRace;
+}
+<div class="page-head">
+    <h1>Hi @Model.FirstName, where are you racing next?</h1>
+    <div class="lane-line"></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        @if (next != null)
+        {
+            var days = (next.EventDate.Date - DateTime.Today).Days;
+            <div class="spotlight h-100">
+                <div class="countdown">@days<small>@(days == 1 ? "day" : "days") to go</small></div>
+                <div class="flex-grow-1">
+                    <div class="meta">Your next race</div>
+                    <h2>@next.EventName</h2>
+                    <div class="meta mb-2">@next.EventDate.ToString("dddd d MMMM") · @next.Location · @next.CategoryName</div>
+                    <span class="@DisplayHelpers.StatusClass(next.Status)">@next.Status</span>
+                </div>
+                <a class="btn btn-lane" asp-area="" asp-controller="Events" asp-action="Details" asp-route-id="@next.EventId">Event details</a>
+                <div class="lane-line"></div>
+            </div>
+        }
+        else
+        {
+            <div class="spotlight h-100">
+                <div class="flex-grow-1">
+                    <div class="meta">No upcoming races</div>
+                    <h2>Pick your next start line</h2>
+                    <div class="meta">Browse the events below and enter in your category.</div>
+                </div>
+                <div class="lane-line"></div>
+            </div>
+        }
+    </div>
+    <div class="col-lg-4">
+        <div class="stat-strip stat-strip-pair h-100">
+            <div class="stat"><div class="value">@Model.UpcomingCount</div><div class="label">Upcoming entries</div></div>
+            <div class="stat"><div class="value">@Model.ResultCount</div><div class="label">Results recorded</div></div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h3 mb-3">Upcoming events</h2>
+<partial name="_EventFilters" model="Model.Browse.Filter" />
+<partial name="_EventGrid" model="Model.Browse" />

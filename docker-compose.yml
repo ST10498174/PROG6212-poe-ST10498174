@@ -1,0 +1,80 @@
+# RaceDay Part 3: the complete platform with one command.
+#
+#   docker compose up --build
+#
+#   MVC web app      http://localhost:8080
+#   Web API/Swagger  http://localhost:5080/swagger
+#   Azurite (blobs)  http://localhost:10000
+#   SQL Server       localhost,1433  (user sa)
+#
+# Stop with Ctrl+C; remove everything (including data) with: docker compose down -v
+
+name: raceday
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    platform: linux/amd64            # SQL Server images are x64; Docker Desktop emulates on Apple Silicon
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:-RaceDay!Local2026}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # Azurite: the official Azure Storage emulator, used instead of a cloud storage account.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --location /data --loose --skipApiVersionCheck
+    ports:
+      - "10000:10000"
+    volumes:
+      - azuritedata:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: src/RaceDay.Api/Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_started   # the API itself retries until SQL Server accepts connections
+      azurite:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      TZ: Africa/Johannesburg
+      ConnectionStrings__RaceDayConnection: "Server=sqlserver,1433;Database=RaceDayDB;User Id=sa;Password=${SA_PASSWORD:-RaceDay!Local2026};TrustServerCertificate=True;MultipleActiveResultSets=true"
+      # The API talks to Azurite by its container name...
+      BlobStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      # ...but saves URLs that the browser on the host can open.
+      BlobStorage__PublicBaseUrl: "http://localhost:10000/devstoreaccount1"
+      Database__StartupRetryCount: "30"
+      SeedDemoData: ${SEED_DEMO_DATA:-true}
+      Swagger__Enabled: "true"
+    ports:
+      - "5080:8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: src/RaceDay.Web/Dockerfile
+    depends_on:
+      - api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      TZ: Africa/Johannesburg
+      RaceDayApi__BaseUrl: "http://api:8080/"
+    ports:
+      - "8080:8080"
+
+volumes:
+  sqldata:
+  azuritedata:

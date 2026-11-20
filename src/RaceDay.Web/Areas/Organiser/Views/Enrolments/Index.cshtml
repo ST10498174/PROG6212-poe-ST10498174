@@ -1,0 +1,81 @@
+@model EnrolmentsPageViewModel
+@{
+    ViewData["Title"] = $"Entries · {Model.Event.Name}";
+    var pending = Model.Enrolments.Count(e => e.Status == "Pending");
+    var confirmed = Model.Enrolments.Count(e => e.Status == "Confirmed");
+    string Filter(string f) => Model.StatusFilter == f ? "btn-dark" : "btn-outline-primary";
+}
+<partial name="_ManageHeader" model="Model" />
+
+<div class="stat-strip mb-4">
+    <div class="stat"><div class="value">@Model.Enrolments.Count</div><div class="label">Entries</div></div>
+    <div class="stat"><div class="value" style="color:var(--rd-confirmed)">@confirmed</div><div class="label">Confirmed</div></div>
+    <div class="stat @(pending > 0 ? "attention" : "")"><div class="value">@pending</div><div class="label">Pending</div></div>
+</div>
+
+@if (Model.Enrolments.Count == 0)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-people"></i></div>
+        <h3>No entries yet</h3>
+        <p>When participants enter this event they'll appear here with their category and status.</p>
+        <a class="btn btn-outline-primary" asp-area="" asp-controller="Events" asp-action="Details" asp-route-id="@Model.Event.EventId">View the public event page</a>
+    </div>
+}
+else
+{
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div class="btn-group btn-group-sm" role="group" aria-label="Filter by status">
+            <a class="btn @Filter("All")" asp-route-eventId="@Model.Event.EventId">All (@Model.Enrolments.Count)</a>
+            <a class="btn @Filter("Pending")" asp-route-eventId="@Model.Event.EventId" asp-route-status="Pending">Pending (@pending)</a>
+            <a class="btn @Filter("Confirmed")" asp-route-eventId="@Model.Event.EventId" asp-route-status="Confirmed">Confirmed (@confirmed)</a>
+        </div>
+        @if (pending > 0)
+        {
+            <form asp-action="ConfirmAll" asp-route-eventId="@Model.Event.EventId" method="post" data-confirm="Confirm all @pending pending entries?">
+                <button type="submit" class="btn btn-primary btn-sm" data-busy="Confirming…"><i class="bi bi-check2-all me-1"></i>Confirm all pending</button>
+            </form>
+        }
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table class="rd-table">
+                <thead><tr><th>Participant</th><th>Contact</th><th>Category</th><th>Entered</th><th>Status</th><th class="text-end">Action</th></tr></thead>
+                <tbody>
+                @foreach (var e in Model.Filtered)
+                {
+                    <tr>
+                        <td class="strong">@e.Participant.FullName</td>
+                        <td><a href="mailto:@e.Participant.Email">@e.Participant.Email</a><div class="text-muted small">@e.Participant.PhoneNumber</div></td>
+                        <td>@e.Category</td>
+                        <td class="text-nowrap">@e.EnrolmentDate.ToString("d MMM yyyy")</td>
+                        <td><span class="@DisplayHelpers.StatusClass(e.Status)">@e.Status</span></td>
+                        <td class="text-end">
+                            <form asp-action="UpdateStatus" method="post" class="d-inline">
+                                <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                                <input type="hidden" name="enrolmentId" value="@e.EnrolmentId" />
+                                <input type="hidden" name="filter" value="@(Model.StatusFilter == "All" ? "" : Model.StatusFilter)" />
+                                @if (e.Status == "Pending")
+                                {
+                                    <input type="hidden" name="status" value="Confirmed" />
+                                    <button type="submit" class="btn btn-primary btn-sm" data-busy="Confirming…">Confirm</button>
+                                }
+                                else
+                                {
+                                    <input type="hidden" name="status" value="Pending" />
+                                    <button type="submit" class="btn btn-outline-primary btn-sm" data-busy="Updating…">Set to pending</button>
+                                }
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Filtered.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">No @Model.StatusFilter.ToLowerInvariant() entries.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

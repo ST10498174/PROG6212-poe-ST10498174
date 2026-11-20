@@ -1,0 +1,20 @@
+@* One-line feedback after an action (set through TempData by the controllers). *@
+@{
+    var alerts = new[]
+    {
+        (Key: AlertKeys.Success, Css: "rd-alert-success", Icon: "bi-check-circle-fill", Role: "status"),
+        (Key: AlertKeys.Info, Css: "rd-alert-info", Icon: "bi-info-circle-fill", Role: "status"),
+        (Key: AlertKeys.Error, Css: "rd-alert-error", Icon: "bi-exclamation-triangle-fill", Role: "alert")
+    };
+}
+@foreach (var alert in alerts)
+{
+    if (TempData[alert.Key] is string message && !string.IsNullOrWhiteSpace(message))
+    {
+        <div class="rd-alert @alert.Css" role="@alert.Role">
+            <i class="bi @alert.Icon" aria-hidden="true"></i>
+            <div>@message</div>
+            <button type="button" class="btn-close" aria-label="Dismiss" onclick="this.parentElement.remove()"></button>
+        </div>
+    }
+}

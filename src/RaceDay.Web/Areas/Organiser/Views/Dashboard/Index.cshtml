@@ -1,0 +1,128 @@
+@model OrganiserDashboardViewModel
+@{
+    ViewData["Title"] = "Race control";
+    var user = Context.GetCurrentUser()!;
+    var next = Model.NextEvent;
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    var maxEntries = Math.Max(1, Model.Upcoming.Select(e => e.EnrolmentCount).DefaultIfEmpty(0).Max());
+}
+<div class="page-head page-head-row">
+    <div>
+        <h1>@greeting, @user.FirstName</h1>
+        <p class="lead mb-0">Here's where your events stand today.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Events" asp-action="Create"><i class="bi bi-plus-lg me-1"></i>Create event</a>
+</div>
+
+@if (Model.Events.Count == 0)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-flag"></i></div>
+        <h3>Set up your first event</h3>
+        <p>Add the date, route distance and a banner, then create the categories participants can enter.</p>
+        <a class="btn btn-primary" asp-controller="Events" asp-action="Create">Create an event</a>
+    </div>
+}
+else
+{
+    <div class="stat-strip mb-4">
+        <div class="stat"><div class="value">@Model.Events.Count</div><div class="label">Events created</div></div>
+        <div class="stat"><div class="value">@Model.Upcoming.Count()</div><div class="label">Upcoming</div></div>
+        <div class="stat"><div class="value">@Model.TotalEntries</div><div class="label">Total entries</div></div>
+        <div class="stat @(Model.PendingEntries > 0 ? "attention" : "")"><div class="value">@Model.PendingEntries</div><div class="label">Entries to confirm</div></div>
+        <div class="stat @(Model.AwaitingResults.Any() ? "attention" : "")"><div class="value">@Model.AwaitingResults.Count()</div><div class="label">Events awaiting results</div></div>
+    </div>
+
+    @if (next != null)
+    {
+        <div class="spotlight mb-4">
+            <div class="countdown">@((next.Date.Date - DateTime.Today).Days)<small>days to go</small></div>
+            <div class="flex-grow-1">
+                <div class="meta">Next event</div>
+                <h2>@next.Name</h2>
+                <div class="meta">@next.Date.ToString("dddd d MMMM") · @next.Location · @next.EnrolmentCount entered (@next.PendingCount pending)</div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-lane" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@next.EventId">Manage entries</a>
+                <a class="btn btn-outline-light-subtle" asp-controller="Events" asp-action="Edit" asp-route-id="@next.EventId">Edit event</a>
+            </div>
+            <div class="lane-line"></div>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-xl-7">
+            <div class="panel h-100">
+                <div class="panel-head"><h2>Upcoming events</h2><a asp-controller="Events" asp-action="Index">All events</a></div>
+                @if (!Model.Upcoming.Any())
+                {
+                    <div class="panel-pad text-muted">No upcoming events. <a asp-controller="Events" asp-action="Create">Create one</a> to open entries.</div>
+                }
+                else
+                {
+                    <div class="table-wrap">
+                        <table class="rd-table">
+                            <thead><tr><th>Event</th><th>Date</th><th style="min-width:180px">Entries</th><th></th></tr></thead>
+                            <tbody>
+                            @foreach (var e in Model.Upcoming)
+                            {
+                                var confirmedPct = e.ConfirmedCount * 100.0 / maxEntries;
+                                var pendingPct = e.PendingCount * 100.0 / maxEntries;
+                                <tr>
+                                    <td><div class="strong">@e.Name</div><div class="text-muted small">@e.Location</div></td>
+                                    <td class="text-nowrap">@e.Date.ToString("d MMM yyyy")<div class="text-muted small">@DisplayHelpers.Relative(e.Date)</div></td>
+                                    <td>
+                                        <div class="mb-1"><span class="num fs-5">@e.EnrolmentCount</span> <span class="text-muted small">@(e.EnrolmentCount == 1 ? "entry" : "entries")</span></div>
+                                        <div class="bar-track" role="img" aria-label="@e.ConfirmedCount confirmed and @e.PendingCount pending entries">
+                                            <div class="bar-confirmed" style="width:@confirmedPct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                            <div class="bar-pending" style="width:@pendingPct.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                        </div>
+                                        <div class="text-muted small mt-1">@e.ConfirmedCount confirmed · @e.PendingCount pending</div>
+                                    </td>
+                                    <td class="text-end"><a class="btn btn-outline-primary btn-sm" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@e.EventId">Entries</a></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-xl-5">
+            <div class="panel h-100">
+                <div class="panel-head"><h2>Completed events</h2></div>
+                @if (!Model.Past.Any())
+                {
+                    <div class="panel-pad text-muted">Results appear here after your first event has taken place.</div>
+                }
+                else
+                {
+                    <table class="rd-table">
+                        <thead><tr><th>Event</th><th>Results</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var e in Model.Past.Take(6))
+                        {
+                            var complete = e.EnrolmentCount > 0 && e.PublishedResultCount >= e.EnrolmentCount;
+                            <tr>
+                                <td><div class="strong">@e.Name</div><div class="text-muted small">@e.Date.ToString("d MMM yyyy")</div></td>
+                                <td>
+                                    @if (e.EnrolmentCount == 0)
+                                    {
+                                        <span class="text-muted small">No entrants</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="@(complete ? "status status-published" : "status status-pending")">@e.PublishedResultCount / @e.EnrolmentCount published</span>
+                                    }
+                                </td>
+                                <td class="text-end"><a class="btn btn-outline-primary btn-sm" asp-controller="Results" asp-action="Index" asp-route-eventId="@e.EventId">Results</a></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+}

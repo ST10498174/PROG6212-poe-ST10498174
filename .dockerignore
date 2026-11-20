@@ -1,0 +1,14 @@
+# Keep build contexts small and free of local build output, secrets and editor files.
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/*.user
+**/node_modules/
+.git/
+.github/
+docs/
+tests/
+TestResults/
+azurite/
+**/appsettings.*.local.json

@@ -1,0 +1,74 @@
+name: Part 3 Build, Test and Docker
+
+on:
+  push:
+    branches:
+      - main
+      - part3
+      - "part3/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build solution (API + MVC) and run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore NuGet packages
+        run: dotnet restore RaceDay.sln
+
+      # Builds RaceDay.Api, RaceDay.Web (MVC) and the test project together.
+      - name: Build solution
+        run: dotnet build RaceDay.sln --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test RaceDay.sln --configuration Release --no-build --verbosity normal
+
+      - name: Validate Part 3 repository structure
+        run: |
+          test -d src/RaceDay.Api
+          test -d src/RaceDay.Web
+          test -f src/RaceDay.Api/Dockerfile
+          test -f src/RaceDay.Web/Dockerfile
+          test -f docker-compose.yml
+          test -f README.md
+          echo "RaceDay Part 3 structure is valid."
+
+  docker:
+    name: Build Docker images and validate Compose
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Build API image
+        run: docker build -f src/RaceDay.Api/Dockerfile -t raceday-api:ci .
+
+      - name: Build MVC image
+        run: docker build -f src/RaceDay.Web/Dockerfile -t raceday-web:ci .
+
+      # Smoke test: the MVC container must start and serve pages even before the API is reachable.
+      - name: Smoke test MVC container
+        run: |
+          docker run -d --name raceday-web -p 8080:8080 -e RaceDayApi__BaseUrl=http://localhost:5999/ raceday-web:ci
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/Account/Login || true)
+            if [ "$code" = "200" ]; then echo "MVC container is serving pages"; exit 0; fi
+            sleep 2
+          done
+          docker logs raceday-web
+          exit 1

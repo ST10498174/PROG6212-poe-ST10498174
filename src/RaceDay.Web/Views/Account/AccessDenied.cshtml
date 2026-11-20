@@ -1,0 +1,23 @@
+@model SessionUser?
+@{
+    ViewData["Title"] = "Access denied";
+}
+<div class="problem">
+    <div class="code"><i class="bi bi-shield-lock"></i></div>
+    <h1 class="mt-3">That page isn't part of your account</h1>
+    <p class="lead mx-auto">
+        @if (Model?.IsOrganiser == true)
+        {
+            @:Organisers can only manage their own events, and participant pages (entering events, personal results) are only available to participant accounts.
+        }
+        else if (Model?.IsParticipant == true)
+        {
+            @:Organiser tools such as creating events and capturing results are only available to organiser accounts.
+        }
+        else
+        {
+            @:You don't have permission to view that page.
+        }
+    </p>
+    <a class="btn btn-primary mt-3" href="@(Model?.DashboardUrl() ?? "/")">Back to my dashboard</a>
+</div>

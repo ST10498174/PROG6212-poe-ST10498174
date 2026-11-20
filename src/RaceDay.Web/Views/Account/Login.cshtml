@@ -1,0 +1,41 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Log in";
+    ViewData["FullBleed"] = true;
+}
+<div class="auth-wrap">
+    <div class="auth-art" aria-hidden="true">
+        <img src="~/images/banner-run.svg" alt="" />
+        <div class="quote">
+            <div class="lane-line mb-3"></div>
+            <h2>Your next start line is waiting.</h2>
+        </div>
+    </div>
+    <div class="auth-form">
+        <div class="inner">
+            <partial name="_Alerts" />
+            <h1 class="mb-1">Log in</h1>
+            <p class="text-muted mb-4">Participants and organisers use the same login. RaceDay opens the right dashboard for your account.</p>
+
+            <form asp-action="Login" method="post" novalidate>
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="rd-alert rd-alert-error d-block" role="alert"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" autocomplete="email" autofocus />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Password"></span>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-lg" data-busy="Logging in…">Log in</button>
+            </form>
+
+            <p class="mt-4 mb-0 text-center">New to RaceDay? <a asp-action="Register">Create an account</a></p>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

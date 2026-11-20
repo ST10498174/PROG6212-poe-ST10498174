@@ -42,3 +42,18 @@ This document plans the RESTful API that will be implemented in Part 2. No API c
 - Enrolment creation and personal enrolment views are restricted to Participants.
 - Results are captured by Organisers and personal published results are viewed by Participants.
 - The implementation in Part 2 should follow this plan closely. Any justified changes should be documented in the README.
+
+## Part 3 additions
+
+The Part 3 MVC front end needed a few extra API capabilities. Every Part 2 endpoint above keeps its route, role and behaviour; the rows below were **added** in Part 3 (see `docs/Part3_Report.md`, section 6, for the reasons).
+
+| HTTP Method | Route | Description | Role Required | Request Body | Expected Response |
+|---|---|---|---|---|---|
+| POST | `/api/events/{eventId}/banner` | Uploads or replaces an event's banner image in Azure Blob Storage (Azurite) and saves the blob URL on the event. | Organiser (event owner) | `multipart/form-data` with `file` (JPEG/PNG/WebP/GIF, max 5 MB) | `200 OK` with `{ eventId, bannerImageUrl }`; `400 Bad Request` (missing, too large or not an image); `401`; `403` (wrong role or not the owner); `404`; `503` storage unavailable. |
+| POST | `/api/profile/picture` | Uploads or replaces the logged-in user's profile picture in Blob Storage. | Any | `multipart/form-data` with `file` | `200 OK` with `{ userId, profilePictureUrl }`; `400`; `401`; `503`. |
+| GET | `/api/events/mine` | Returns the logged-in Organiser's events with category, enrolment (confirmed/pending) and result counts for the dashboard. | Organiser | None | `200 OK` with a (possibly empty) array; `401`; `403`. |
+| PUT | `/api/enrolments/{id}/status` | Confirms an enrolment or sets it back to pending. | Organiser (event owner) | `{ status }` (`Pending` or `Confirmed`) | `200 OK` with `{ enrolmentId, eventId, status }`; `400` invalid status; `401`; `403`; `404`. |
+| DELETE | `/api/enrolments/{id}` | Withdraws the logged-in Participant from an upcoming event. | Participant (enrolment owner) | None | `204 No Content`; `401`; `403`; `404`; `409` event already happened or result captured. |
+| GET | `/api/events?search=&eventType=&location=&from=&to=&upcomingOnly=` | Optional filters added to the existing public endpoint. No parameters means the Part 2 behaviour. | None | None | `200 OK` with matching events (empty array when none match); `400` for an invalid event type or date range. |
+
+Response changes (additive only): event responses include `organiserName` and `categoryCount`; `GET /api/enrolments/me` includes event date, location, type, distance, banner and result flags; `GET /api/events/{eventId}/enrolments` includes the participant's phone number, `categoryId` and any captured result; `GET /api/results/me` includes `eventId`, location, type, distance and `totalFinishers`. Create and update endpoints return flat JSON objects rather than EF entities.

@@ -1,0 +1,30 @@
+@model OrganiserEventDto
+@{
+    ViewData["Title"] = $"Delete {Model.Name}";
+}
+<div class="breadcrumb-lite"><a asp-action="Index"><i class="bi bi-arrow-left me-1"></i>My events</a></div>
+<div class="page-head">
+    <h1>Delete @Model.Name?</h1>
+    <div class="lane-line"></div>
+</div>
+<div class="panel panel-pad" style="max-width: 680px">
+    @if (Model.EnrolmentCount > 0)
+    {
+        <div class="rd-alert rd-alert-error"><i class="bi bi-exclamation-triangle-fill"></i>
+            <div>@Model.EnrolmentCount @(Model.EnrolmentCount == 1 ? "participant has" : "participants have") entered this event, so it can't be deleted. Entrants' records and results must be kept.</div>
+        </div>
+        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.EventId">Back to the event</a>
+    }
+    else
+    {
+        <p>This permanently removes the event, its @Model.CategoryCount @(Model.CategoryCount == 1 ? "category" : "categories") and its banner image. This can't be undone.</p>
+        <dl class="row mb-4">
+            <dt class="col-sm-3">Date</dt><dd class="col-sm-9">@Model.Date.ToString("dddd d MMMM yyyy")</dd>
+            <dt class="col-sm-3">Location</dt><dd class="col-sm-9">@Model.Location</dd>
+        </dl>
+        <form asp-action="Delete" asp-route-id="@Model.EventId" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger" data-busy="Deleting…">Delete event</button>
+            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.EventId">Keep event</a>
+        </form>
+    }
+</div>

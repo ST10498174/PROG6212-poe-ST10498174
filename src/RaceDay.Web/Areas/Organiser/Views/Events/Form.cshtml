@@ -1,0 +1,92 @@
+@model EventFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? $"Edit {Model.Name}" : "Create event";
+    var managed = ViewData["ManagedEvent"] as ManagedEventViewModel;
+    var preview = Model.CurrentBannerUrl ?? DisplayHelpers.BannerUrl(null, Model.EventType);
+}
+@if (managed != null)
+{
+    <partial name="_ManageHeader" model="managed" />
+}
+else
+{
+    <div class="breadcrumb-lite"><a asp-action="Index"><i class="bi bi-arrow-left me-1"></i>My events</a></div>
+    <div class="page-head">
+        <h1>Create an event</h1>
+        <p class="lead mb-0">Add the essentials now. You'll set up categories on the next step.</p>
+        <div class="lane-line"></div>
+    </div>
+}
+
+<form asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.EventId" method="post" enctype="multipart/form-data" novalidate>
+    <div asp-validation-summary="ModelOnly" class="rd-alert rd-alert-error d-block" role="alert"></div>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="form-panel">
+                <div class="form-section-title">Event details</div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control" placeholder="e.g. Umhlanga Sunrise 10K" />
+                        <span asp-validation-for="Name"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Description" class="form-label"></label>
+                        <textarea asp-for="Description" class="form-control" rows="5" placeholder="Route, start time, water points, what to bring…"></textarea>
+                        <span asp-validation-for="Description"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="Date" class="form-label"></label>
+                        <input asp-for="Date" class="form-control" type="date" />
+                        <span asp-validation-for="Date"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="EventType" class="form-label"></label>
+                        <select asp-for="EventType" class="form-select" id="EventType">
+                            <option value="Run">Run</option>
+                            <option value="Walk">Walk</option>
+                            <option value="Cycle">Cycle</option>
+                        </select>
+                        <span asp-validation-for="EventType"></span>
+                    </div>
+                    <div class="col-sm-8">
+                        <label asp-for="Location" class="form-label"></label>
+                        <input asp-for="Location" class="form-control" placeholder="e.g. Umhlanga Promenade, Durban" />
+                        <span asp-validation-for="Location"></span>
+                    </div>
+                    <div class="col-sm-4">
+                        <label asp-for="DistanceKm" class="form-label"></label>
+                        <input asp-for="DistanceKm" class="form-control" type="number" step="0.1" />
+                        <span asp-validation-for="DistanceKm"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="form-panel">
+                <div class="form-section-title">Banner image</div>
+                <div class="banner-preview mb-3"><img id="bannerPreview" src="@preview" alt="Banner preview" /></div>
+                <label asp-for="Banner" class="form-label">@(Model.CurrentBannerUrl != null ? "Replace banner" : "Upload a banner")</label>
+                <input asp-for="Banner" type="file" class="form-control" accept="@ImageUploadRules.AcceptAttribute" data-preview="bannerPreview" />
+                <span asp-validation-for="Banner"></span>
+                <div class="form-text">Landscape JPG, PNG or WebP up to 5 MB. Without a banner, RaceDay shows an illustration for the event type.</div>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex gap-2 justify-content-end mt-4">
+        <a class="btn btn-outline-primary" asp-action="Index">Cancel</a>
+        <button type="submit" class="btn btn-primary" data-busy="Saving…">@(Model.IsEdit ? "Save changes" : "Create event")</button>
+    </div>
+</form>
+
+@if (Model.IsEdit)
+{
+    <div class="panel panel-pad mt-5 d-flex flex-wrap justify-content-between align-items-center gap-2" style="border-color:#F3C2C8">
+        <div>
+            <div class="fw-semibold">Delete this event</div>
+            <div class="text-muted small">Only possible while nobody has entered.</div>
+        </div>
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.EventId">Delete event</a>
+    </div>
+}
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

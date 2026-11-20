@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!--
+    RaceDay MVC front end (Part 3).
+    This project deliberately has no NuGet packages and no database access: every piece of data is
+    read and written through the Part 2 RaceDay Web API using HttpClient.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>RaceDay.Web</RootNamespace>
+  </PropertyGroup>
+</Project>

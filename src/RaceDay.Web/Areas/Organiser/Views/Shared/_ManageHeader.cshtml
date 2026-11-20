@@ -1,0 +1,30 @@
+@model ManagedEventViewModel
+@{
+    var e = Model.Event;
+    string Tab(string name) => Model.ActiveTab == name ? "active" : string.Empty;
+}
+<div class="breadcrumb-lite"><a asp-area="Organiser" asp-controller="Events" asp-action="Index"><i class="bi bi-arrow-left me-1"></i>My events</a></div>
+<div class="page-head-row mb-3">
+    <div>
+        <h1 class="mb-1">@e.Name</h1>
+        <div class="text-muted">
+            <span class="type-tag me-2"><partial name="_EventTypeIcon" model="e.EventType" />@e.EventType</span>
+            @e.Date.ToString("dddd d MMMM yyyy") · @e.Location · @DisplayHelpers.Distance(e.DistanceKm)
+            @if (e.IsUpcoming)
+            {
+                <span class="status status-open ms-2">@DisplayHelpers.Relative(e.Date)</span>
+            }
+            else
+            {
+                <span class="status status-closed ms-2">Completed</span>
+            }
+        </div>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" asp-area="" asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId"><i class="bi bi-box-arrow-up-right me-1"></i>View public page</a>
+</div>
+<nav class="manage-tabs" aria-label="Manage event">
+    <a class="@Tab("Edit")" asp-controller="Events" asp-action="Edit" asp-route-id="@e.EventId">Details</a>
+    <a class="@Tab("Categories")" asp-controller="Categories" asp-action="Index" asp-route-eventId="@e.EventId">Categories</a>
+    <a class="@Tab("Entries")" asp-controller="Enrolments" asp-action="Index" asp-route-eventId="@e.EventId">Entries</a>
+    <a class="@Tab("Results")" asp-controller="Results" asp-action="Index" asp-route-eventId="@e.EventId">Results</a>
+</nav>

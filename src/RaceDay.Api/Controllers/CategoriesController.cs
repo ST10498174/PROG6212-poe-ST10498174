@@ -74,7 +74,7 @@ public class CategoriesController : ApiControllerBase
 
         _db.Categories.Add(category);
         await _db.SaveChangesAsync();
-        return Created($"/api/events/{eventId}/categories", category);
+        return Created($"/api/events/{eventId}/categories", ToResponse(category));
     }
 
     /// <summary>Updates an existing category belonging to the logged-in Organiser's event.</summary>
@@ -101,7 +101,7 @@ public class CategoriesController : ApiControllerBase
         category.DistanceKm = request.DistanceKm;
 
         await _db.SaveChangesAsync();
-        return Ok(category);
+        return Ok(ToResponse(category));
     }
 
     /// <summary>Deletes a category when it has no dependent enrolments.</summary>
@@ -124,6 +124,18 @@ public class CategoriesController : ApiControllerBase
         await _db.SaveChangesAsync();
         return NoContent();
     }
+
+    // Returns a flat object instead of the EF entity, whose Event navigation would create a JSON object cycle.
+    private static object ToResponse(Category c) => new
+    {
+        c.CategoryId,
+        c.EventId,
+        c.Name,
+        c.CategoryType,
+        c.MinAge,
+        c.MaxAge,
+        c.DistanceKm
+    };
 
     private IActionResult? ValidateCategory(CategoryRequest request)
     {

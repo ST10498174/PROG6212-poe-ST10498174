@@ -1,0 +1,53 @@
+@model CategoriesPageViewModel
+@{
+    ViewData["Title"] = $"Categories · {Model.Event.Name}";
+}
+<partial name="_ManageHeader" model="Model" />
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="panel">
+            <div class="panel-head"><h2>Categories (@Model.Categories.Count)</h2></div>
+            @if (Model.Categories.Count == 0)
+            {
+                <div class="panel-pad">
+                    <p class="mb-1 fw-semibold">No categories yet</p>
+                    <p class="text-muted mb-0">Participants can't enter until there's at least one. Add a distance (e.g. 10km) or an age group (e.g. Under 20).</p>
+                </div>
+            }
+            else
+            {
+                <table class="rd-table">
+                    <thead><tr><th>Name</th><th>Type</th><th>Applies to</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                    @foreach (var c in Model.Categories)
+                    {
+                        <tr>
+                            <td class="strong">@c.Name</td>
+                            <td>@(c.CategoryType == "Age" ? "Age group" : "Distance")</td>
+                            <td>@c.Summary</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-outline-primary btn-sm" asp-action="Edit" asp-route-id="@c.CategoryId" asp-route-eventId="@Model.Event.EventId">Edit</a>
+                                <form asp-action="Delete" method="post" class="d-inline" data-confirm="Remove the category &quot;@c.Name&quot;?">
+                                    <input type="hidden" name="id" value="@c.CategoryId" />
+                                    <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" data-busy="Removing…">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <p class="text-muted small mt-2">Categories with entries can't be removed, so entrants always keep the category they chose.</p>
+    </div>
+    <div class="col-lg-5">
+        <form asp-action="Create" asp-route-eventId="@Model.Event.EventId" method="post" class="form-panel">
+            <div class="form-section-title">Add a category</div>
+            <div asp-validation-summary="ModelOnly" class="rd-alert rd-alert-error d-block" role="alert"></div>
+            <partial name="_CategoryFields" model="Model.NewCategory" view-data='new ViewDataDictionary(ViewData) { ["Prefix"] = "NewCategory" }' />
+            <button type="submit" class="btn btn-primary w-100 mt-4" data-busy="Adding…"><i class="bi bi-plus-lg me-1"></i>Add category</button>
+        </form>
+    </div>
+</div>

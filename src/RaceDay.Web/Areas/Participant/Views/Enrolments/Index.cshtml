@@ -1,0 +1,95 @@
+@model MyEventsViewModel
+@{
+    ViewData["Title"] = "My events";
+}
+<div class="page-head page-head-row">
+    <div>
+        <h1>My events</h1>
+        <p class="lead mb-0">Everything you've entered. Organisers confirm entries before race day.</p>
+    </div>
+    <a class="btn btn-primary" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-search me-1"></i>Find more events</a>
+</div>
+
+@if (Model.Enrolments.Count == 0)
+{
+    <div class="empty">
+        <div class="icon"><i class="bi bi-flag"></i></div>
+        <h3>You haven't entered any events yet</h3>
+        <p>Find a run, walk or ride near you and enter in a couple of clicks.</p>
+        <a class="btn btn-primary" asp-controller="Dashboard" asp-action="Index">Browse events</a>
+    </div>
+}
+else
+{
+    <h2 class="h3 mb-3">Upcoming <span class="text-muted fs-6 fw-normal">(@Model.Upcoming.Count())</span></h2>
+    @if (!Model.Upcoming.Any())
+    {
+        <p class="text-muted mb-4">No upcoming entries. <a asp-controller="Dashboard" asp-action="Index">Find your next event.</a></p>
+    }
+    else
+    {
+        <div class="panel mb-5">
+            <div class="table-wrap">
+                <table class="rd-table">
+                    <thead><tr><th>Event</th><th>Date</th><th>Category</th><th>Status</th><th class="text-end"></th></tr></thead>
+                    <tbody>
+                    @foreach (var e in Model.Upcoming)
+                    {
+                        <tr>
+                            <td>
+                                <a class="strong text-reset text-decoration-none" asp-area="" asp-controller="Events" asp-action="Details" asp-route-id="@e.EventId">@e.EventName</a>
+                                <div class="text-muted small"><partial name="_EventTypeIcon" model="e.EventType" /> @e.EventType · @e.Location · @DisplayHelpers.Distance(e.DistanceKm)</div>
+                            </td>
+                            <td class="text-nowrap">@e.EventDate.ToString("ddd d MMM yyyy")<div class="text-muted small">@DisplayHelpers.Relative(e.EventDate)</div></td>
+                            <td>@e.CategoryName</td>
+                            <td><span class="@DisplayHelpers.StatusClass(e.Status)">@e.Status</span></td>
+                            <td class="text-end">
+                                @if (!e.HasResult)
+                                {
+                                    <form asp-action="Withdraw" asp-route-id="@e.EnrolmentId" method="post" data-confirm="Withdraw from @e.EventName? You can enter again later if entries are still open.">
+                                        <input type="hidden" name="eventName" value="@e.EventName" />
+                                        <button type="submit" class="btn btn-link-danger btn-sm" data-busy="Withdrawing…">Withdraw</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @if (Model.Past.Any())
+    {
+        <h2 class="h3 mb-3">Completed <span class="text-muted fs-6 fw-normal">(@Model.Past.Count())</span></h2>
+        <div class="panel">
+            <div class="table-wrap">
+                <table class="rd-table">
+                    <thead><tr><th>Event</th><th>Date</th><th>Category</th><th>Entry</th><th>Result</th></tr></thead>
+                    <tbody>
+                    @foreach (var e in Model.Past)
+                    {
+                        <tr>
+                            <td class="strong">@e.EventName<div class="text-muted small fw-normal">@e.Location</div></td>
+                            <td class="text-nowrap">@e.EventDate.ToString("d MMM yyyy")</td>
+                            <td>@e.CategoryName</td>
+                            <td><span class="@DisplayHelpers.StatusClass(e.Status)">@e.Status</span></td>
+                            <td>
+                                @if (e.ResultPublished)
+                                {
+                                    <a asp-controller="Results" asp-action="Index">View result</a>
+                                }
+                                else
+                                {
+                                    <span class="status status-draft">Awaiting results</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

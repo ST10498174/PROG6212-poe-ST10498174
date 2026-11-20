@@ -1,0 +1,16 @@
+@{
+    var status = Context.Response.StatusCode;
+    var back = ViewData["BackUrl"] as string;
+}
+<div class="problem">
+    <div class="code">@(status >= 400 ? status : 500)</div>
+    <h1 class="mt-2">@ViewData["Title"]</h1>
+    <p class="lead mx-auto">@(ViewData["Message"] ?? "Something went wrong. Please try again.")</p>
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        @if (!string.IsNullOrEmpty(back))
+        {
+            <a class="btn btn-primary" href="@back">Go back</a>
+        }
+        <a class="btn @(string.IsNullOrEmpty(back) ? "btn-primary" : "btn-outline-primary")" href="@(Context.GetCurrentUser()?.DashboardUrl() ?? "/")">Go to RaceDay home</a>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+@model EventListViewModel
+@{
+    ViewData["Title"] = "Upcoming events";
+}
+<div class="page-head">
+    <h1>Upcoming events</h1>
+    <p class="lead mb-0">Runs, walks and rides open for entries across South Africa.</p>
+    <div class="lane-line"></div>
+</div>
+
+<partial name="_EventFilters" model="Model.Filter" />
+<partial name="_EventGrid" model="Model" />

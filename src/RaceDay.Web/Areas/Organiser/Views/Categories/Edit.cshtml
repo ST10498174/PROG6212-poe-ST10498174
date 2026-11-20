@@ -1,0 +1,16 @@
+@model CategoryFormViewModel
+@{
+    ViewData["Title"] = $"Edit {Model.Name}";
+    var managed = (ManagedEventViewModel)ViewData["ManagedEvent"]!;
+}
+<partial name="_ManageHeader" model="managed" />
+<form asp-action="Edit" asp-route-id="@Model.CategoryId" method="post" class="form-panel" style="max-width: 620px">
+    <input type="hidden" name="EventId" value="@Model.EventId" />
+    <div class="form-section-title">Edit category</div>
+    <div asp-validation-summary="ModelOnly" class="rd-alert rd-alert-error d-block" role="alert"></div>
+    <partial name="_CategoryFields" model="Model" />
+    <div class="d-flex gap-2 justify-content-end mt-4">
+        <a class="btn btn-outline-primary" asp-action="Index" asp-route-eventId="@Model.EventId">Cancel</a>
+        <button type="submit" class="btn btn-primary" data-busy="Saving…">Save category</button>
+    </div>
+</form>
